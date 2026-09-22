@@ -3,6 +3,10 @@ on:
     branches:
       - "main"
 
+permissions:
+  id-token: "write"
+  contents: "read"
+
 env:
   CODEAPI_API_REPO: "librechat-codeapi-api"
   CODEAPI_FILE_SERVER_REPO: "librechat-codeapi-file-server"
