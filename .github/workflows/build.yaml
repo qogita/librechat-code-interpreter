@@ -21,7 +21,7 @@ jobs:
       - name: "Configure aws credentials"
         uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
         with:
-          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GHA_PROD_AWS_ROLE_ARN }}
           role-session-name: "librechat-code-interpreter"
           aws-region: "eu-central-1"
 
@@ -47,7 +47,7 @@ jobs:
       - name: "Configure aws credentials"
         uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
         with:
-          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GHA_PROD_AWS_ROLE_ARN }}
           role-session-name: "librechat-code-interpreter"
           aws-region: "eu-central-1"
 
@@ -73,7 +73,7 @@ jobs:
       - name: "Configure aws credentials"
         uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
         with:
-          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GHA_PROD_AWS_ROLE_ARN }}
           role-session-name: "librechat-code-interpreter"
           aws-region: "eu-central-1"
 
@@ -99,7 +99,7 @@ jobs:
       - name: "Configure aws credentials"
         uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
         with:
-          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GHA_PROD_AWS_ROLE_ARN }}
           role-session-name: "librechat-code-interpreter"
           aws-region: "eu-central-1"
 
@@ -125,7 +125,7 @@ jobs:
       - name: "Configure aws credentials"
         uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
         with:
-          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GHA_PROD_AWS_ROLE_ARN }}
           role-session-name: "librechat-code-interpreter"
           aws-region: "eu-central-1"
 
