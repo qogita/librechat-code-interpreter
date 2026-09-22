@@ -1,0 +1,142 @@
+on:
+  push:
+    branches:
+      - "main"
+
+env:
+  CODEAPI_API_REPO: "librechat-codeapi-api"
+  CODEAPI_FILE_SERVER_REPO: "librechat-codeapi-file-server"
+  CODEAPI_TOOL_CALL_SERVER_REPO: "librechat-codeapi-tool-call-server"
+  CODEAPI_WORKER_SANDBOX_REPO: "librechat-codeapi-worker-sandbox"
+  CODEAPI_PACKAGE_INIT_REPO: "librechat-codeapi-package-init"
+
+jobs:
+  build_push_api:
+    name: "Build and push code interpreter api"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+      - name: "Configure aws credentials"
+        uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
+        with:
+          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-session-name: "librechat-code-interpreter"
+          aws-region: "eu-central-1"
+
+      - name: "Log in to Amazon ECR"
+        id: "login-ecr"
+        uses: "aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419"
+
+      - name: "Build, tag, and push docker image to Amazon ECR"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/${{ env.CODEAPI_API_REPO }}:$TAG \
+                          --file service/Dockerfile.api .
+          docker push $REGISTRY/${{ env.CODEAPI_API_REPO }}:$TAG
+
+  build_push_file_server:
+    name: "Build and push code interpreter file-server"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+      - name: "Configure aws credentials"
+        uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
+        with:
+          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-session-name: "librechat-code-interpreter"
+          aws-region: "eu-central-1"
+
+      - name: "Log in to Amazon ECR"
+        id: "login-ecr"
+        uses: "aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419"
+
+      - name: "Build, tag, and push docker image to Amazon ECR"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/${{ env.CODEAPI_FILE_SERVER_REPO }}:$TAG \
+                          --file service/Dockerfile .
+          docker push $REGISTRY/${{ env.CODEAPI_FILE_SERVER_REPO }}:$TAG
+
+  build_push_tool_call_server:
+    name: "Build and push code interpreter tool-call-server"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+      - name: "Configure aws credentials"
+        uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
+        with:
+          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-session-name: "librechat-code-interpreter"
+          aws-region: "eu-central-1"
+
+      - name: "Log in to Amazon ECR"
+        id: "login-ecr"
+        uses: "aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419"
+
+      - name: "Build, tag, and push docker image to Amazon ECR"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:$TAG \
+                          --file service/Dockerfile.tool-call-server .
+          docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:$TAG
+
+  build_push_worker_sandbox:
+    name: "Build and push code interpreter worker-sandbox"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+      - name: "Configure aws credentials"
+        uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
+        with:
+          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-session-name: "librechat-code-interpreter"
+          aws-region: "eu-central-1"
+
+      - name: "Log in to Amazon ECR"
+        id: "login-ecr"
+        uses: "aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419"
+
+      - name: "Build, tag, and push docker image to Amazon ECR"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:$TAG \
+                          --file service/Dockerfile.worker-sandbox .
+          docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:$TAG
+
+  build_push_package_init:
+    name: "Build and push code interpreter package-init"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+      - name: "Configure aws credentials"
+        uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
+        with:
+          role-to-assume: ${{ vars.GHA_PROD_AWS_ROLE_ARN }}
+          role-session-name: "librechat-code-interpreter"
+          aws-region: "eu-central-1"
+
+      - name: "Log in to Amazon ECR"
+        id: "login-ecr"
+        uses: "aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419"
+
+      - name: "Build, tag, and push docker image to Amazon ECR"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:$TAG \
+                          --file service/Dockerfile.package-init .
+          docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:$TAG

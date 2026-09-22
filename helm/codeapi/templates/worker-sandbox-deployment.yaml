@@ -13,8 +13,11 @@ Split runtime deployments:
 {{- end }}
 {{- $serviceWorkerServiceAccount := .Values.workerSandbox.serviceAccount.name | default (printf "%s-service-worker" (include "codeapi.fullname" .)) }}
 {{- $sandboxRunnerServiceAccount := .Values.workerSandbox.sandboxServiceAccount.name | default (printf "%s-sandbox-runner" (include "codeapi.fullname" .)) }}
-{{- if not .Values.executionManifest.privateKey }}
-{{- fail "workerSandbox.enabled requires executionManifest.privateKey so service-worker can sign sandbox execute manifests. The chart ships no default keypair; generate your own Ed25519 keypair (see helm/codeapi/README.md 'Execution manifest signing keys') and set it via --set or a values file (base64 DER or PEM with escaped newlines). For minikube local dev use -f values-local.yaml" }}
+{{- if and (not .Values.executionManifest.privateKey) (not .Values.executionManifest.existingSecret) }}
+{{- fail "workerSandbox.enabled requires executionManifest.privateKey or executionManifest.existingSecret so service-worker can sign sandbox execute manifests. The chart ships no default keypair; generate your own Ed25519 keypair (see helm/codeapi/README.md 'Execution manifest signing keys') and supply it through an existing Secret or values (base64 DER or PEM with escaped newlines). For minikube local dev use -f values-local.yaml" }}
+{{- end }}
+{{- if and .Values.executionManifest.existingSecret (not .Values.executionManifest.existingSecretKey) }}
+{{- fail "executionManifest.existingSecretKey is required when executionManifest.existingSecret is set" }}
 {{- end }}
 {{- if not .Values.executionManifest.publicKey }}
 {{- fail "workerSandbox.enabled requires executionManifest.publicKey so sandbox-runner can verify signed execute manifests without a signing secret. The chart ships no default keypair; derive the public key from your Ed25519 private key (see helm/codeapi/README.md 'Execution manifest signing keys') and set it via --set or a values file (base64 DER or PEM with escaped newlines). For minikube local dev use -f values-local.yaml" }}
@@ -172,8 +175,13 @@ spec:
             - name: CODEAPI_EXECUTION_MANIFEST_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.executionManifest.existingSecret }}
+                  name: {{ .Values.executionManifest.existingSecret | quote }}
+                  key: {{ .Values.executionManifest.existingSecretKey | quote }}
+                  {{- else }}
                   name: {{ include "codeapi.fullname" . }}-secrets
                   key: codeapi-execution-manifest-private-key
+                  {{- end }}
             - name: EXECUTION_MANIFEST_TTL_SECONDS
               value: {{ .Values.executionManifest.ttlSeconds | quote }}
             - name: EGRESS_GRANT_TTL_SECONDS

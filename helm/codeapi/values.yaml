@@ -58,11 +58,15 @@ egressGrant:
 #
 # There is intentionally NO default keypair: deployments MUST provide their own
 # Ed25519 keypair (see README.md "Execution manifest signing keys" for
-# generation commands). `helm install`/`upgrade` fails when
-# workerSandbox.enabled=true and these are unset. For minikube local dev,
+# generation commands). When workerSandbox.enabled=true, publicKey and either
+# privateKey or existingSecret are required. For minikube local dev,
 # values-local.yaml ships a test-only keypair.
 executionManifest:
   privateKey: ""
+  # Optional Kubernetes Secret in the release namespace. When set, takes
+  # precedence over privateKey, which is omitted from the chart-managed Secret.
+  existingSecret: ""
+  existingSecretKey: "codeapi-execution-manifest-private-key"
   publicKey: ""
   ttlSeconds: 300
 

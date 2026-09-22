@@ -18,7 +18,9 @@ key; sandbox-runner only receives the public verifier, so a runner compromise
 cannot mint new manifests. The chart ships **no default keypair** —
 `executionManifest.privateKey` and `executionManifest.publicKey` are empty in
 `values.yaml`, and `helm install`/`helm upgrade` fails fast when
-`workerSandbox.enabled=true` (the default) and either value is unset.
+`workerSandbox.enabled=true` (the default) and the public key or a private-key
+source is unset. Supply the private key through `executionManifest.privateKey`
+or reference a Kubernetes Secret with `executionManifest.existingSecret`.
 
 Generate a keypair and pass it as base64-encoded DER (or PEM with escaped
 newlines):
@@ -42,6 +44,37 @@ helm install codeapi . \
 For production, prefer external secrets management (Vault, AWS Secrets
 Manager, Sealed Secrets) or deploy-time `--set` over committing key material
 to a values file.
+
+### Existing Kubernetes Secret (Argo CD / external secrets)
+
+To keep the private key out of Helm values and rendered manifests, provision a
+Secret in the release namespace and reference it:
+
+```yaml
+executionManifest:
+  existingSecret: "codeapi-manifest-signing"
+  existingSecretKey: "EXECUTION_MANIFEST_PRIVATE_KEY"
+  publicKey: "<matching-base64-DER-public-key>"
+```
+
+The Secret value accepts the same base64 DER or PEM format as `privateKey`.
+`existingSecretKey` defaults to `codeapi-execution-manifest-private-key`.
+When `existingSecret` is set, it takes precedence over `privateKey`, and the
+chart omits the private-key field from its own Secret. Other chart-managed
+Secret fields are unchanged. The sandbox-runner still receives only
+`publicKey` from values, never the signing Secret.
+
+Remove any placeholder `privateKey` and any duplicate
+`CODEAPI_EXECUTION_MANIFEST_PRIVATE_KEY` entry from `workerSandbox.extraEnv`.
+The chart renders a single reference directly on the service-worker, avoiding
+[Argo CD duplicate environment-variable patch errors](https://argo-cd.readthedocs.io/en/stable/faq/#how-do-i-fix-the-order-in-patch-list-doesnt-match-setelementorder-list).
+
+This option references a Secret; it does not provision one or fetch from AWS
+Secrets Manager. No cluster lookup is performed during rendering. The Secret
+and selected key must be available when the worker starts. When using Secrets
+Store CSI synchronization, a consuming pod must mount the corresponding CSI
+volume; a Secret reference alone does not trigger synchronization. See the
+[CSI synchronization documentation](https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret).
 
 `values-local.yaml` carries a **test-only keypair** for minikube local dev. It
 is publicly known (the same keypair is hardcoded in the unit tests), so never
