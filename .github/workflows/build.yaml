@@ -13,6 +13,7 @@ env:
   CODEAPI_TOOL_CALL_SERVER_REPO: "platform-team/librechat-codeapi-tool-call-server"
   CODEAPI_WORKER_SANDBOX_REPO: "platform-team/librechat-codeapi-worker-sandbox"
   CODEAPI_PACKAGE_INIT_REPO: "platform-team/librechat-codeapi-package-init"
+  CODEAPI_EGRESS_GATEWAY_REPO: "platform-team/librechat-codeapi-egress-gateway"
 
 jobs:
   build_push_api:
@@ -143,4 +144,30 @@ jobs:
         run: |
           docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest \
                           --file docker/Dockerfile.package-init .
+          docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest
+
+  build_push_egress_gateway:
+    name: "Build and push code interpreter egress-gateway"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+      - name: "Configure aws credentials"
+        uses: "aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5"
+        with:
+          role-to-assume: ${{ secrets.GHA_PROD_AWS_ROLE_ARN }}
+          role-session-name: "librechat-code-interpreter"
+          aws-region: "eu-central-1"
+
+      - name: "Log in to Amazon ECR"
+        id: "login-ecr"
+        uses: "aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419"
+
+      - name: "Build, tag, and push docker image to Amazon ECR"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest \
+                          --file service/Dockerfile.egress-gateway .
           docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest
