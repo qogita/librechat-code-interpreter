@@ -116,7 +116,7 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest \
-                          --file service/Dockerfile.worker-sandbox .
+                          --file docker/Dockerfile.worker-sandbox .
           docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest
 
   build_push_package_init:
@@ -142,5 +142,5 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest \
-                          --file service/Dockerfile.package-init .
+                          --file docker/Dockerfile.package-init .
           docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest
