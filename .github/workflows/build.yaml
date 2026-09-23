@@ -120,7 +120,7 @@ jobs:
         run: |
           docker build -t $REGISTRY/${{ env.CODEAPI_WORKER_SANDBOX_REPO }}:latest \
                           --target production \
-                          --file docker/Dockerfile.worker-sandbox .
+                          --file service/Dockerfile.worker .
           docker push $REGISTRY/${{ env.CODEAPI_WORKER_SANDBOX_REPO }}:latest
 
   build_push_package_init:
