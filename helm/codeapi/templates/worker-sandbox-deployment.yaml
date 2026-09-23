@@ -154,6 +154,8 @@ spec:
 {{ include "codeapi.otel.env" (dict "root" . "serviceName" "aiml-codeapi-service-worker") | nindent 12 }}
             - name: CODEAPI_HARDENED_SANDBOX_MODE
               value: {{ .Values.hardenedSandboxMode | quote }}
+            - name: SANDBOX_EXECUTION_MANIFEST_PUBLIC_KEY
+              value: {{ .Values.executionManifest.publicKey | quote }}
             {{- with .Values.executionProfile }}
             - name: CODEAPI_EXECUTION_PROFILE
               value: {{ . | quote }}
