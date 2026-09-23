@@ -138,6 +138,10 @@ spec:
         - name: wait-for-sandbox-runner
           image: busybox:1.36.1
           command: ['sh', '-c', 'until nc -z {{ include "codeapi.fullname" . }}-sandbox-runner {{ .Values.workerSandbox.sandbox.port }}; do echo waiting for sandbox-runner; sleep 2; done']
+      {{- if $useKvmHostPath }}
+      securityContext:
+        supplementalGroups: [{{ .Values.workerSandbox.kvmGid }}]
+      {{- end }}
       containers:
         - name: service-worker
           image: "{{ .Values.workerSandbox.workerImage.repository }}:{{ .Values.workerSandbox.workerImage.tag }}"
@@ -211,6 +215,57 @@ spec:
               port: health
             initialDelaySeconds: 10
             periodSeconds: 10
+          {{- if or $packagesFromPvc $useKvmHostPath }}
+          volumeMounts:
+            {{- if $packagesFromPvc }}
+            - name: packages
+              mountPath: /host-packages
+              readOnly: true
+            {{- end }}
+            {{- if $useKvmHostPath }}
+            - name: dev-kvm
+              mountPath: /dev/kvm
+            {{- end }}
+          {{- end }}
+          {{- if .Values.workerSandbox.kvmEnabled }}
+          securityContext:
+            privileged: false
+            {{- if and .Values.workerSandbox.seccomp .Values.workerSandbox.seccomp.enabled }}
+            seccompProfile:
+              type: Localhost
+              localhostProfile: profiles/nsjail.json
+            {{- else }}
+            seccompProfile:
+              type: RuntimeDefault
+            {{- end }}
+          {{- else }}
+          securityContext:
+            privileged: false
+            {{- if and .Values.workerSandbox.seccomp .Values.workerSandbox.seccomp.enabled }}
+            seccompProfile:
+              type: Localhost
+              localhostProfile: profiles/nsjail.json
+            {{- else }}
+            seccompProfile:
+              type: Unconfined
+            {{- end }}
+            capabilities:
+              add:
+                - SYS_ADMIN
+                - SYS_CHROOT
+                - SYS_PTRACE
+                - SETUID
+                - SETGID
+                - NET_ADMIN
+                - DAC_OVERRIDE
+                - DAC_READ_SEARCH
+                - CHOWN
+                - FOWNER
+                - FSETID
+                - KILL
+                - SETFCAP
+                - MKNOD
+          {{- end }}
           resources:
             requests:
               cpu: {{ .Values.workerSandbox.resources.requests.cpu }}
@@ -219,6 +274,31 @@ spec:
             limits:
               {{- toYaml . | nindent 14 }}
             {{- end }}
+      {{- if or $packagesFromPvc $useKvmHostPath }}
+      volumes:
+        {{- if $packagesFromPvc }}
+        - name: packages
+          {{- if .Values.workerSandbox.packages.hostPath }}
+          hostPath:
+            path: {{ .Values.workerSandbox.packages.hostPath }}
+            type: Directory
+          {{- else if .Values.workerSandbox.packages.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.workerSandbox.packages.persistence.existingClaim }}
+          {{- else if .Values.workerSandbox.packages.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "codeapi.fullname" . }}-packages
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+        {{- if $useKvmHostPath }}
+        - name: dev-kvm
+          hostPath:
+            path: /dev/kvm
+            type: CharDevice
+        {{- end }}
+      {{- end }}
       {{- with $serviceWorkerNodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
