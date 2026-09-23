@@ -117,10 +117,10 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest \
+          docker build -t $REGISTRY/${{ env.CODEAPI_WORKER_SANDBOX_REPO }}:latest \
                           --file docker/Dockerfile.worker-sandbox \
                           --target production .
-          docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest
+          docker push $REGISTRY/${{ env.CODEAPI_WORKER_SANDBOX_REPO }}:latest
 
   build_push_package_init:
     name: "Build and push code interpreter package-init"
@@ -144,9 +144,9 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest \
+          docker build -t $REGISTRY/${{ env.CODEAPI_PACKAGE_INIT_REPO }}:latest \
                           --file docker/Dockerfile.package-init .
-          docker push $REGISTRY/${{ env.CODEAPI_TOOL_CALL_SERVER_REPO }}:latest
+          docker push $REGISTRY/${{ env.CODEAPI_PACKAGE_INIT_REPO }}:latest
 
   build_push_egress_gateway:
     name: "Build and push code interpreter egress-gateway"
