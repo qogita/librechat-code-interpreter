@@ -267,13 +267,16 @@ spec:
                 - MKNOD
           {{- end }}
           resources:
-            requests:
-              cpu: {{ .Values.workerSandbox.resources.requests.cpu }}
-              memory: {{ .Values.workerSandbox.resources.requests.memory }}
-            {{- with .Values.workerSandbox.resources.limits }}
-            limits:
-              {{- toYaml . | nindent 14 }}
+            {{- $workerResources := deepCopy .Values.workerSandbox.resources }}
+            {{- if $useKvmDevicePlugin }}
+            {{- $requests := (get $workerResources "requests") | default dict }}
+            {{- $limits := (get $workerResources "limits") | default dict }}
+            {{- $_ := set $requests .Values.workerSandbox.kvmDevicePlugin.resourceName "1" }}
+            {{- $_ := set $limits .Values.workerSandbox.kvmDevicePlugin.resourceName "1" }}
+            {{- $_ := set $workerResources "requests" $requests }}
+            {{- $_ := set $workerResources "limits" $limits }}
             {{- end }}
+            {{- toYaml $workerResources | nindent 12 }}
       {{- if or $packagesFromPvc $useKvmHostPath }}
       volumes:
         {{- if $packagesFromPvc }}
