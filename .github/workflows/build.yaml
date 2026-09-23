@@ -119,6 +119,7 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker build -t $REGISTRY/${{ env.CODEAPI_WORKER_SANDBOX_REPO }}:latest \
+                          --target production \
                           --file docker/Dockerfile.worker-sandbox .
           docker push $REGISTRY/${{ env.CODEAPI_WORKER_SANDBOX_REPO }}:latest
 
